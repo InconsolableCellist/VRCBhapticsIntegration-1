@@ -1,1 +1,9 @@
-PUT LIBS HERE
+Assembly-CSharp.dll
+Il2Cppmscorlib.dll
+MelonLoader.dll
+UnhollowerBaseLib.dll
+UnityEngine.CoreModule.dll
+UnityEngine.dll
+VRCCore-Standalone.dll
+VRChatUtilityKit.dll
+VRCSDKBase.dll

@@ -68,24 +68,12 @@
       <HintPath>Libs\UnityEngine.CoreModule.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <HintPath>Libs\UnityEngine.PhysicsModule.dll</HintPath>
+    <Reference Include="VRCCore-Standalone">
+      <HintPath>Libs\VRCCore-Standalone.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>Libs\UnityEngine.UI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UIElementsModule">
-      <HintPath>Libs\UnityEngine.UIElementsModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.UIModule">
-      <HintPath>Libs\UnityEngine.UIModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="VRCSDK3A">
-      <HintPath>Libs\VRCSDK3A.dll</HintPath>
+    <Reference Include="VRChatUtilityKit">
+      <HintPath>Libs\VRChatUtilityKit.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRCSDKBase">

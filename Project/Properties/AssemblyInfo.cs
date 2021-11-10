@@ -13,4 +13,4 @@ using MelonLoader;
 [assembly: AssemblyFileVersion(VRCBhapticsIntegration.BuildInfo.Version)]
 [assembly: NeutralResourcesLanguage("en")]
 [assembly: MelonInfo(typeof(VRCBhapticsIntegration.VRCBhapticsIntegration), VRCBhapticsIntegration.BuildInfo.Name, VRCBhapticsIntegration.BuildInfo.Version, VRCBhapticsIntegration.BuildInfo.Author, VRCBhapticsIntegration.BuildInfo.DownloadLink)]
-[assembly: MelonGame(null, null)]
+[assembly: MelonGame("VRChat", "VRChat")]

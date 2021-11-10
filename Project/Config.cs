@@ -2,7 +2,7 @@
 
 namespace VRCBhapticsIntegration
 {
-	internal static class VRCBhaptics_Config
+	internal static class ModConfig
 	{
 		internal static void Initialize()
 		{

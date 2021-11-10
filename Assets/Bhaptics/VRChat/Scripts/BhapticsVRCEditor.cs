@@ -27,7 +27,6 @@ public enum BhapticsDeviceType
 [AddComponentMenu("VRCBhapticsIntegrationEditor")]
 public class VRCBhapticsIntegrationEditor : MonoBehaviour
 {
-	//public static readonly Vector3[] objectPositionOffsets = new Vector3[8];
 	public static readonly Vector3[] objectRotationOffsets = new Vector3[8];
 	public static readonly Vector3[] objectScaleOffsets = new Vector3[8];
 	public static readonly float[] cameraSizeOffsets = new float[8];
@@ -59,7 +58,6 @@ public class VRCBhapticsIntegrationEditor : MonoBehaviour
             return;
         }
         GameObject device =  AssetDatabase.LoadAssetAtPath<GameObject>(path);
-		//objectPositionOffsets[offset_index] = device.transform.position;
 		objectRotationOffsets[offset_index] = device.transform.eulerAngles;
 		objectScaleOffsets[offset_index] = device.transform.lossyScale;
 		Camera[] cameras = device.GetComponentsInChildren<Camera>(true);
@@ -82,20 +80,41 @@ public class VRCBhapticsIntegrationEditor : MonoBehaviour
 #endif
 	}
 	
+	public void ToggleAllDeviceCameras(bool toggle)
+	{
+		ToggleDeviceCamera("Vest", toggle);
+		ToggleDeviceCamera("LeftArm", toggle);
+		ToggleDeviceCamera("RightArm", toggle);
+		ToggleDeviceCamera("Head", toggle);
+		ToggleDeviceCamera("LeftHand", toggle);
+		ToggleDeviceCamera("RightHand", toggle);
+		ToggleDeviceCamera("LeftFoot", toggle);
+		ToggleDeviceCamera("RightFoot", toggle);
+	}
+	public void ToggleDeviceCamera(string deviceTypeStr, bool toggle)
+	{
+		string prefabName = GetDevicePrefabName(deviceTypeStr);
+		Transform target = FindDeviceObject(prefabName);
+		if (target != null)
+			ToggleDeviceCamera(target.gameObject, toggle);
+	}
+	public void ToggleDeviceCamera(GameObject device, bool toggle)
+	{
+		Camera[] cameras = device.GetComponentsInChildren<Camera>(true);
+        for (int i = 0; i < cameras.Length; ++i)
+		{
+			Camera cam = cameras[i];
+			if (cam.name.StartsWith("Dummy"))
+				continue;
+			cam.enabled = toggle;
+		}
+	}
+	
 	public static void SetObjectScaleFromPrefab(GameObject device, int offset_index) => 
 		device.transform.localScale = objectScaleOffsets[offset_index];
 	
 	public static void SetObjectOffetsFromPrefab(GameObject device, int offset_index)
 	{
-		//device.transform.localPosition = objectPositionOffsets[offset_index];
-		/*
-		Vector3 currentRotation = device.transform.localEulerAngles;
-		Transform currentParent = device.transform.parent;
-		device.transform.SetParent(null, true);
-		device.transform.eulerAngles = objectRotationOffsets[offset_index];
-		device.transform.SetParent(currentParent);
-		device.transform.localEulerAngles -= currentRotation;
-		*/
 		device.transform.localPosition = Vector3.zero;
 		
 		Camera[] cameras = device.GetComponentsInChildren<Camera>(true);
@@ -239,6 +258,7 @@ public class VRCBhapticsIntegrationEditor : MonoBehaviour
 #if UNITY_EDITOR
         InitSetupDeviceGameObjects();
         BhapticsVRCHelper.ToggleCameraGizmos(false);
+		ToggleAllDeviceCameras(false);
 #endif
     }
 
@@ -246,6 +266,7 @@ public class VRCBhapticsIntegrationEditor : MonoBehaviour
     {
 #if UNITY_EDITOR
         BhapticsVRCHelper.ToggleCameraGizmos(true);
+		ToggleAllDeviceCameras(false);
 #endif
     }
 
