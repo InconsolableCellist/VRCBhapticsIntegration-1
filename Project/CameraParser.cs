@@ -68,6 +68,40 @@ namespace VRCBhapticsIntegration
 			}
 		}
 
+		[HideFromIl2Cpp]
+		private void ParsePixels(Color[] pixelcolors, int width, int height)
+		{
+			if ((pixelcolors == null)
+				|| (pixelcolors.Length <= 0))
+				return;
+
+			if (OldColors == null)
+				OldColors = pixelcolors;
+			else
+			{
+				byte[] Value = new byte[20];
+
+				for (int col = 0; col < height; col++)
+					for (int row = 0; row < width; row++)
+					{
+						int bytepos = row * height + col;
+						int colorpos = bytepos - 1;
+
+						if (colorpos < 0)
+							colorpos = 0;
+						else if (colorpos >= 0)
+							colorpos += 1;
+
+						Color pixel = pixelcolors[colorpos];
+						Color oldpixel = OldColors[colorpos];
+						Value[colorpos] = (byte)((pixel != oldpixel) ? Intensity : 0);
+					}
+
+				RearrangeValueBuffer(ref Value);
+				bHaptics.Submit($"vrchat_{Position}", Position, Value, 100);
+			}
+		}
+
 		private void OnPreCull()
 		{
 			if (!ShouldRun())
@@ -105,6 +139,8 @@ namespace VRCBhapticsIntegration
 			}
 		}
 
+		private Texture2D TempTexture;
+		private Rect TempTextureRect = Rect.zero;
 		private void OnRenderImage(RenderTexture src, RenderTexture dest)
 		{
 			if (!ShouldRun())
@@ -112,44 +148,32 @@ namespace VRCBhapticsIntegration
 			
 			Graphics.Blit(src, dest);
 
-			// Credit to ImTiara for this tip on using AsyncGPUReadback.Request
-			AsyncGPUReadback.Request(src, callback: new Action<AsyncGPUReadbackRequest>(ParseRequest));
-		}
+			if (SystemInfo.supportsAsyncGPUReadback)
+			{
+				// Credit to ImTiara for this tip on using AsyncGPUReadback.Request
+				AsyncGPUReadback.Request(src, callback: new Action<AsyncGPUReadbackRequest>((AsyncGPUReadbackRequest req) =>
+				{
+					IntPtr rawdata = req.GetDataRaw(0);
+					if (rawdata == IntPtr.Zero)
+						return;
 
-		[HideFromIl2Cpp]
-		private void ParseRequest(AsyncGPUReadbackRequest req)
-		{
-			IntPtr rawdata = req.GetDataRaw(0);
-			if (rawdata == IntPtr.Zero)
-				return;
-
-			Color[] pixelcolors = VRCBhapticsIntegration.RawDataToColorArray(rawdata, req.GetLayerDataSize());
-			if (pixelcolors.Length <= 0)
-				return;
-
-			if (OldColors == null)
-				OldColors = pixelcolors;
+					ParsePixels(VRCBhapticsIntegration.RawDataToColorArray(rawdata, req.GetLayerDataSize()), req.width, req.height);
+				}));
+			}
 			else
 			{
-				byte[] Value = new byte[20];
-				for (int col = 0; col < req.height; col++)
-					for (int row = 0; row < req.width; row++)
-					{
-						int bytepos = row * req.height + col;
-						int colorpos = bytepos - 1;
+				int width = dest.width;
+				int height = dest.height;
 
-						if (colorpos < 0)
-							colorpos = 0;
-						else if (colorpos >= 0)
-							colorpos += 1;
+				if (TempTexture == null)
+					TempTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
+				if (TempTextureRect == Rect.zero)
+					TempTextureRect = new Rect(0, 0, width, height);
 
-						Color pixel = pixelcolors[colorpos];
-						Color oldpixel = OldColors[colorpos];
-						Value[colorpos] = (byte)((pixel != oldpixel) ? Intensity : 0);
-					}
+				TempTexture.ReadPixels(TempTextureRect, 0, 0);
+				TempTexture.Apply();
 
-				RearrangeValueBuffer(ref Value);
-				bHaptics.Submit($"vrchat_{Position}", Position, Value, 100);
+				ParsePixels(TempTexture.GetPixels(0, 0, width, height), width, height);
 			}
 		}
 	}
