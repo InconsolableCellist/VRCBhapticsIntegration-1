@@ -25,26 +25,26 @@ If this is too much of an issue for you switch over to using the Steam Platform 
 
 ### REQUIREMENTS:
 
-- [MelonLoader](https://github.com/LavaGang/MelonLoader/releases/latest) v0.4.3 or higher.
-- [VRChatUtilityKit v1.0.12](https://github.com/loukylor/VRC-Mods/releases/tag/VRCUK-1.1.2) or higher.
+- [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.4.3 or higher.
+- [VRChatUtilityKit](https://github.com/loukylor/VRC-Mods/releases) v1.1.3 or higher.
 
 ---
 
 ### INSTALLATION:
 
-1) Install [MelonLoader](https://github.com/LavaGang/MelonLoader/releases/latest) v0.4.3 or higher.
-2) Download [VRChatUtilityKit v1.0.12](https://github.com/loukylor/VRC-Mods/releases/tag/VRCUK-1.1.2) or higher.
+1) Install [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.4.3 or higher.
+2) Download [VRChatUtilityKit](https://github.com/loukylor/VRC-Mods/releases) v1.1.3 or higher.
 3) Place ``VRChatUtilityKit.dll`` in your ``Mods`` folder.
-4) Download [VRCBhapticsIntegration](https://github.com/HerpDerpinstine/VRCBhapticsIntegration/releases/latest) from Releases.
+4) Download [VRCBhapticsIntegration](https://github.com/HerpDerpinstine/VRCBhapticsIntegration/releases) from Releases.
 5) Place ``VRCBhapticsIntegration.dll`` in your ``Mods`` folder.
 
 ---
 
 ### COMPILATION:
 
-1) Install [MelonLoader](https://github.com/LavaGang/MelonLoader/releases/latest) v0.4.3 or higher.
+1) Install [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.4.3 or higher.
 2) Run the game until it finishes Assembly Generation.
-3) Copy the files listed in the ``PUT LIBS HERE.txt`` text document from your ``MelonLoader/Managed`` folder to the Project's ``Libs`` folder.
+3) Copy the files listed in the ``PUT LIBS HERE.txt`` text document in the Project's ``Libs`` folder.
 
 ---
 

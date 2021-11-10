@@ -13,7 +13,6 @@ namespace VRCBhapticsIntegration
 		private int Intensity = ModConfig.DefaultIntensity;
 		internal int[] OldLayers;
 		internal Camera _camera = null;
-		private byte[] Value = new byte[20];
 		private Color[] OldColors;
 
 		public CameraParser(IntPtr ptr) : base(ptr) { }
@@ -27,7 +26,7 @@ namespace VRCBhapticsIntegration
 
 		[HideFromIl2Cpp]
 		internal void SetupFromConfig(int index)
-        {
+		{
 			Enabled = ModConfig.Allow_bHapticsPlayer_Communication.Value && ModConfig.Entries_Enable[index].Value;
 			Position = ModConfig.PositionArr[index];
 			Intensity = ModConfig.Entries_Intensity[index].Value;
@@ -37,7 +36,7 @@ namespace VRCBhapticsIntegration
 
 		[HideFromIl2Cpp]
 		private bool ShouldRun()
-        {
+		{
 			if (bHaptics.WasError
 				|| !Enabled
 				|| VRCBhapticsIntegration.IsInFBTCalibration())
@@ -46,7 +45,7 @@ namespace VRCBhapticsIntegration
 		}
 
 		[HideFromIl2Cpp]
-		private void RearrangeValueBuffer()
+		private void RearrangeValueBuffer(ref byte[] Value)
 		{
 			Array.Reverse(Value, 0, Value.Length);
 			switch (Position)
@@ -70,7 +69,7 @@ namespace VRCBhapticsIntegration
 		}
 
 		private void OnPreCull()
-        {
+		{
 			if (!ShouldRun())
 				return;
 
@@ -86,30 +85,32 @@ namespace VRCBhapticsIntegration
 				OldLayers[i] = gameObject.layer;
 				object_to_cull.SetLayerRecursive(VRCBhapticsIntegration.LayerForCulling);
 			}
-        }
+		}
 
-        private void OnPostCull()
-        {
-            if (!ShouldRun())
-                return;
-
-            if ((VRCBhapticsIntegration.ObjectsToCull == null) || (VRCBhapticsIntegration.ObjectsToCull.Length <= 0))
-                return;
-
-            for (int i = 0; i < VRCBhapticsIntegration.ObjectsToCull.Length; i++)
-            {
-                GameObject object_to_cull = VRCBhapticsIntegration.ObjectsToCull[i];
-                if (object_to_cull == null)
-                    continue;
-
-				object_to_cull.SetLayerRecursive(OldLayers[i]);
-            }
-        }
-
-        private void OnRenderImage(RenderTexture src, RenderTexture dest)
+		private void OnPostCull()
 		{
 			if (!ShouldRun())
 				return;
+
+			if ((VRCBhapticsIntegration.ObjectsToCull == null) || (VRCBhapticsIntegration.ObjectsToCull.Length <= 0))
+				return;
+
+			for (int i = 0; i < VRCBhapticsIntegration.ObjectsToCull.Length; i++)
+			{
+				GameObject object_to_cull = VRCBhapticsIntegration.ObjectsToCull[i];
+				if (object_to_cull == null)
+					continue;
+
+				object_to_cull.SetLayerRecursive(OldLayers[i]);
+			}
+		}
+
+		private void OnRenderImage(RenderTexture src, RenderTexture dest)
+		{
+			if (!ShouldRun())
+				return;
+			
+			Graphics.Blit(src, dest);
 
 			// Credit to ImTiara for this tip on using AsyncGPUReadback.Request
 			AsyncGPUReadback.Request(src, callback: new Action<AsyncGPUReadbackRequest>(ParseRequest));
@@ -117,7 +118,7 @@ namespace VRCBhapticsIntegration
 
 		[HideFromIl2Cpp]
 		private void ParseRequest(AsyncGPUReadbackRequest req)
-        {
+		{
 			IntPtr rawdata = req.GetDataRaw(0);
 			if (rawdata == IntPtr.Zero)
 				return;
@@ -130,6 +131,7 @@ namespace VRCBhapticsIntegration
 				OldColors = pixelcolors;
 			else
 			{
+				byte[] Value = new byte[20];
 				for (int col = 0; col < req.height; col++)
 					for (int row = 0; row < req.width; row++)
 					{
@@ -143,13 +145,10 @@ namespace VRCBhapticsIntegration
 
 						Color pixel = pixelcolors[colorpos];
 						Color oldpixel = OldColors[colorpos];
-						if (pixel != oldpixel)
-							Value[colorpos] = (byte)Intensity;
-						else
-							Value[colorpos] = 0;
+						Value[colorpos] = (byte)((pixel != oldpixel) ? Intensity : 0);
 					}
 
-				RearrangeValueBuffer();
+				RearrangeValueBuffer(ref Value);
 				bHaptics.Submit($"vrchat_{Position}", Position, Value, 100);
 			}
 		}
