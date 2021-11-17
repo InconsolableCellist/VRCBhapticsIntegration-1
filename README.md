@@ -10,6 +10,8 @@ Special Thanks to [bHaptics](https://www.bhaptics.com) for making the bHaptics G
 
 - AVATAR CREATION GUIDE: https://youtu.be/duaOPZsA5A0
 
+- Mod Settings are found in ``UserData/VRCBhapticsIntegration.cfg``
+
 ---
 
 ### KNOWN ISSUES:
@@ -26,25 +28,15 @@ If this is too much of an issue for you switch over to using the Steam Platform 
 ### REQUIREMENTS:
 
 - [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.4.3 or higher.
-- [VRChatUtilityKit](https://github.com/loukylor/VRC-Mods/releases) v1.1.3 or higher.
 
 ---
 
 ### INSTALLATION:
 
 1) Install [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.4.3 or higher.
-2) Download [VRChatUtilityKit](https://github.com/loukylor/VRC-Mods/releases) v1.1.3 or higher.
-3) Place ``VRChatUtilityKit.dll`` in your ``Mods`` folder.
-4) Download [VRCBhapticsIntegration](https://github.com/HerpDerpinstine/VRCBhapticsIntegration/releases) from Releases.
-5) Place ``VRCBhapticsIntegration.dll`` in your ``Mods`` folder.
-
----
-
-### COMPILATION:
-
-1) Install [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.4.3 or higher.
-2) Run the game until it finishes Assembly Generation.
-3) Copy the files listed in the ``PUT LIBS HERE.txt`` text document in the Project's ``Libs`` folder.
+2) Download [VRCBhapticsIntegration](https://github.com/HerpDerpinstine/VRCBhapticsIntegration/releases) from Releases.
+3) Place ``VRCBhapticsIntegration.dll`` in your ``Mods`` folder.
+4) Start the Game and change into a bHaptics Compatible Avatar.
 
 ---
 

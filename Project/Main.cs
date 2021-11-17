@@ -3,100 +3,121 @@ using System.Collections.Generic;
 using UnityEngine;
 using MelonLoader;
 using UnhollowerRuntimeLib;
-using VRChatUtilityKit.Utilities;
+using HarmonyLib;
+using System.Reflection;
 
 namespace VRCBhapticsIntegration
 {
     internal static class BuildInfo
     {
         public const string Name = "VRCBhapticsIntegration";
-        public const string Author = "Herp Derpinstine, benaclejames, BenjaminZehowlt, knah, and ImTiara";
+        public const string Author = "Herp Derpinstine, benaclejames, BenjaminZehowlt, knah, ImTiara, and loukylor";
         public const string Company = "Lava Gang";
-        public const string Version = "1.0.8";
+        public const string Version = "1.0.9";
         public const string DownloadLink = "https://github.com/HerpDerpinstine/VRCBhapticsIntegration";
     }
 
-    public class VRCBhapticsIntegration : MelonMod
+    internal class VRCBhapticsIntegration : MelonMod
 	{
-		private static CameraParser[] CameraParsers;
-		private static bool HasSearched = false;
-		internal static GameObject[] ObjectsToCull;
-		internal static int LayerForCulling;
-		private static string CurrentAvatarID = null;
-		private static float[] CullingDistances = new float[30];
+		private static Dictionary<bHaptics.PositionType, CameraParser> CameraParsers;
+		private static int LayerForCulling;
+		private static bool HasSteamTracking = false;
+		private static bool HasOculusRiftTracking = false;
+		private static bool HasOculusTouchTracking = false;
 
 		public override void OnApplicationStart()
         {
 			if (bHaptics.WasError)
 				return;
 
-			for (int i = 0; i < CullingDistances.Length; i++)
-				CullingDistances[i] = float.MaxValue;
+			LayerForCulling = LayerMask.NameToLayer("PlayerLocal");
+			CameraParsers = new Dictionary<bHaptics.PositionType, CameraParser>();
 
-			LayerForCulling = LayerMask.NameToLayer("MirrorReflection");
-			CameraParsers = new CameraParser[ModConfig.PositionArr.Length];
+			HasSteamTracking = typeof(VRCAvatarManager).Assembly.GetType("VRCTrackingSteam") != null;
+			HasOculusRiftTracking = typeof(VRCAvatarManager).Assembly.GetType("VRCTrackingRift") != null;
+			HasOculusTouchTracking = typeof(VRCAvatarManager).Assembly.GetType("VRCTrackingTouch") != null;
 
 			ModConfig.Initialize();
 			ClassInjector.RegisterTypeInIl2Cpp<CameraParser>();
-			NetworkEvents.OnAvatarInstantiated += OnAvatarInstantiated;
+
+			HarmonyInstance.Patch(typeof(VRCPlayer).GetMethod("Awake", BindingFlags.Public | BindingFlags.Instance), 
+				null,
+				new HarmonyMethod(typeof(VRCBhapticsIntegration).GetMethod("AwakePatch", BindingFlags.NonPublic | BindingFlags.Static)));
 		}
 
-		public override void OnPreferencesLoaded() => OnPreferencesSaved();
-        public override void OnPreferencesSaved()
-		{
-			if (bHaptics.WasError)
-				return;
-
-			int arr_size = CameraParsers.Length;
-			if (arr_size <= 0)
-				return;
-
-			for (int i = 0; i < arr_size; i++)
-			{
-				if (CameraParsers[i] == null)
-					continue;
-				CameraParsers[i].SetupFromConfig(i);
-			}
-		}
-
-		internal static void OnCameraParserSetup(CameraParser cameraParser)
+		internal static void ResetCameraParser(bHaptics.PositionType pos)
         {
-			if (!HasSearched)
-			{
-				HasSearched = true;
-
-				GameObject[] gameObjects = GetSteamVRTrackedObjects();
-				if (gameObjects == null)
-					return;
-
-				int arr_size = gameObjects.Length;
-				if (arr_size <= 0)
-					return;
-
-				List<GameObject> objects = new List<GameObject>();
-				for (int i = 0; i < arr_size; i++)
-				{
-					GameObject gameObject = gameObjects[i];
-					if (gameObject == null)
-						continue;
-
-					Transform modelTransform = gameObject.transform.FindChild("Model");
-					if (modelTransform == null)
-						continue;
-
-					MelonDebug.Msg($"Adding Model of {gameObject.name} to Culling List");
-					objects.Add(modelTransform.gameObject);
-				}
-
-				ObjectsToCull = objects.ToArray();
-			}
-
-			if (ObjectsToCull != null)
-				cameraParser.OldLayers = new int[ObjectsToCull.Length];
+			if (!CameraParsers.TryGetValue(pos, out CameraParser parser)
+				|| (parser == null))
+				return;
+			parser.OldColors = null;
 		}
 
-		private static Camera[] TempCameraArray;
-		private static void OnAvatarInstantiated(VRCAvatarManager avatar_manager, VRC.Core.ApiAvatar api_avatar, GameObject gameobject)
+		// Credit to knah for this simple method to grab VRCTracking
+		internal static T FindVRCTracking<T>() where T : VRCTracking
+		{
+			T VRCTrackingT = null;
+			foreach (VRCTracking vrcTracking in VRCTrackingManager.field_Private_Static_VRCTrackingManager_0.field_Private_List_1_VRCTracking_0)
+			{
+				VRCTrackingT = vrcTracking.TryCast<T>();
+				if (VRCTrackingT != null)
+					break;
+			}
+			return VRCTrackingT;
+		}
+
+		private static GameObject[] GatherTrackedObjects()
+		{
+			List<GameObject> objects = new List<GameObject>();
+
+			if (HasSteamTracking)
+			{
+				GameObject[] steamvr = SteamTracking.GetTrackedObjects();
+				if ((steamvr != null)
+					&& (steamvr.Length > 0))
+					objects.AddRange(steamvr);
+			}
+
+			if (HasOculusRiftTracking)
+            {
+
+            }
+
+			if (HasOculusTouchTracking)
+            {
+
+            }
+
+			return objects.ToArray();
+		}
+
+		private static void SetTrackedObjectsCullingLayer()
+		{
+			GameObject[] TrackedObjects = GatherTrackedObjects();
+			if ((TrackedObjects != null)
+				&& (TrackedObjects.Length > 0))
+				foreach (GameObject obj in TrackedObjects)
+				{
+					SetLayerRecursive(obj, LayerForCulling);
+					MelonDebug.Msg($"Added {obj.name} to Culling Layer");
+				}
+		}
+
+		// Credit to loukylor for this Recursive Layer Set method
+		private static void SetLayerRecursive(GameObject gameObject, int layer)
+		{
+			gameObject.layer = layer;
+			foreach (var child in gameObject.transform)
+				SetLayerRecursive(child.Cast<Transform>().gameObject, layer);
+		}
+
+		// Credit to loukylor for this Avatar Instantiated Patch
+		private static void AwakePatch(VRCPlayer __instance)
+			=> __instance.Method_Public_add_Void_OnAvatarIsReady_0(new Action(()
+				=> OnAvatarInstantiated(__instance.prop_VRCAvatarManager_0, __instance.field_Internal_GameObject_0))
+			);
+
+		private static void OnAvatarInstantiated(VRCAvatarManager avatar_manager, GameObject gameobject)
         {
 			if (bHaptics.WasError)
 				return;
@@ -113,111 +134,41 @@ namespace VRCBhapticsIntegration
 			if ((vrcAvatarManager == null) || (vrcAvatarManager != avatar_manager))
 				return;
 
-			CurrentAvatarID = api_avatar.id;
-
-			for (int i = 0; i < CameraParsers.Length; i++)
-				CameraParsers[i] = null;
+			CameraParsers.Clear();
 
 			Camera[] foundCameras = gameobject.GetComponentsInChildren<Camera>(true);
 			if (foundCameras.Length <= 0)
 				return;
 
-			if (TempCameraArray == null)
-				TempCameraArray = new Camera[CameraParsers.Length];
-			else
-				for (int i = 0; i < TempCameraArray.Length; i++)
-					TempCameraArray[i] = null;
+			SetTrackedObjectsCullingLayer();
 
-			foreach (Camera cam in foundCameras)
+			for (int i = 0; i < foundCameras.Length; i++)
 			{
+				Camera cam = foundCameras[i];
+				if (cam == null)
+					continue;
+
 				RenderTexture tex = cam.targetTexture;
 				if (tex == null)
 					continue;
 
-				for (int i = 0; i < ModConfig.RenderTextureNames.Length; i++)
-                {
-					if (!tex.name.Equals(ModConfig.RenderTextureNames[i]))
-						continue;
-
-					TempCameraArray[i] = cam;
-					break;
-                }
-			}
-
-			for (int i = 0; i < TempCameraArray.Length; i++)
-            {
-				if (TempCameraArray[i] == null)
+				if (!ModConfig.RenderTextureToPos.TryGetValue(tex.name, out bHaptics.PositionType pos))
 					continue;
 
-				CameraParsers[i] = TempCameraArray[i].gameObject.AddComponent(Il2CppType.Of<CameraParser>()).TryCast<CameraParser>();
-				
-				CameraParsers[i]._camera = TempCameraArray[i];
-				CameraParsers[i]._camera.useOcclusionCulling = true;
-				CameraParsers[i]._camera.cullingMask &= ~(1 << LayerForCulling);
-				CameraParsers[i]._camera.SetLayerCullDistances(CullingDistances);
+				CameraParser parser = cam.gameObject.AddComponent(Il2CppType.Of<CameraParser>()).TryCast<CameraParser>();
+				parser.enabled = true;
+				parser.Position = pos;
 
-				CameraParsers[i].SetupFromConfig(i);
+				parser._camera = cam;
+				parser._camera.enabled = false;
+				parser._camera.useOcclusionCulling = true;
+				parser._camera.cullingMask &= ~(1 << LayerForCulling);
 
-				MelonLogger.Msg(ModConfig.ProperNames[i] + " Linked!");
+				parser.SetupFromConfig();
+				CameraParsers[pos] = parser;
+
+				MelonLogger.Msg(ModConfig.PosToName[pos] + " Linked!");
 			}
-		}
-
-		// Credit to knah for this simple method to grab VRCTrackingSteam
-		private static VRCTrackingSteam vrcTrackingSteam;
-		internal static VRCTrackingSteam GetVRCTrackingSteam()
-		{
-			if (vrcTrackingSteam != null)
-				return vrcTrackingSteam;
-
-			foreach (VRCTracking vrcTracking in VRCTrackingManager.field_Private_Static_VRCTrackingManager_0.field_Private_List_1_VRCTracking_0)
-			{
-				vrcTrackingSteam = vrcTracking.TryCast<VRCTrackingSteam>();
-				if (vrcTrackingSteam != null)
-					break;
-			}
-
-			return vrcTrackingSteam;
-		}
-
-		private static SteamVR_ControllerManager steamVR_ControllerManager;
-		internal static SteamVR_ControllerManager GetSteamVRControllerManager()
-		{
-			if (steamVR_ControllerManager != null)
-				return steamVR_ControllerManager;
-
-			VRCTrackingSteam tracking = GetVRCTrackingSteam();
-			if (tracking == null)
-				return null;
-
-			return steamVR_ControllerManager = tracking.field_Private_SteamVR_ControllerManager_0;
-		}
-
-		internal static GameObject[] GetSteamVRTrackedObjects()
-        {
-			SteamVR_ControllerManager controllerManager = GetSteamVRControllerManager();
-			if (controllerManager == null)
-				return null;
-
-			return controllerManager.field_Public_ArrayOf_GameObject_0;
-		}
-
-		// Credit to BenjaminZehowlt for helping with this FBT Calibration Detection
-		internal static bool IsInFBTCalibration()
-        {
-			VRCTrackingSteam tracking = GetVRCTrackingSteam();
-			if (tracking == null)
-				return false;
-			return tracking.Method_Public_Virtual_Boolean_String_0(CurrentAvatarID);
-		}
-
-		// Credit to knah for helping with this Raw Data to Color Conversion
-		internal static unsafe Color[] RawDataToColorArray(IntPtr rawdata_ptr, int rawdata_length)
-		{
-			byte* rawdata = (byte*)rawdata_ptr;
-			Color[] colors = new Color[rawdata_length / 4];
-			for (int i = 0; i < rawdata_length; i += 4)
-				colors[i / 4] = new Color(rawdata[i] / 255f, rawdata[i + 1] / 255f, rawdata[i + 2] / 255f, rawdata[i + 3] / 255f);
-			return colors;
 		}
 	}
 }

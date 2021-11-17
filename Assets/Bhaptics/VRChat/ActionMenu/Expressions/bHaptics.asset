@@ -1,0 +1,95 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: -340790334, guid: 67cc4cb7839cd3741b63733d5adf0442, type: 3}
+  m_Name: bHaptics
+  m_EditorClassIdentifier: 
+  controls:
+  - name: Vest
+    icon: {fileID: 2800000, guid: c7725e08220b52a45bca0745cbb819f2, type: 3}
+    type: 103
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: f148fcad0ddcad94badc11949db6acc9, type: 2}
+    subParameters: []
+    labels: []
+  - name: Right Arm
+    icon: {fileID: 2800000, guid: 883be9bed2f2e304d9664986135d1295, type: 3}
+    type: 103
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 0e3bcc8d5624a264aa483001abe91880, type: 2}
+    subParameters: []
+    labels: []
+  - name: Right Hand
+    icon: {fileID: 2800000, guid: 560aedd6526ff2047a68ec62fb592733, type: 3}
+    type: 103
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: a14122e73edbc064d96ac4dceefa5ebc, type: 2}
+    subParameters: []
+    labels: []
+  - name: Right Foot
+    icon: {fileID: 2800000, guid: a2022818b52e67a41802bf7890cbae4d, type: 3}
+    type: 103
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 49e44659f4cc9a149ae553338510dc55, type: 2}
+    subParameters: []
+    labels: []
+  - name: Left Foot
+    icon: {fileID: 2800000, guid: 92d38164333b2fa49a56cc741b3e3202, type: 3}
+    type: 103
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 0829721048352994285f495504b87588, type: 2}
+    subParameters: []
+    labels: []
+  - name: Left Hand
+    icon: {fileID: 2800000, guid: 4d5967ac54a307c4eb57ac35294cd40d, type: 3}
+    type: 103
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 877c60811407db24ca55c95149a3cae2, type: 2}
+    subParameters: []
+    labels: []
+  - name: Left Arm
+    icon: {fileID: 2800000, guid: 4776cb6f07b452342906a7e3ace63a2a, type: 3}
+    type: 103
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: d2801bce4ea7ce041b2b7119db4d0545, type: 2}
+    subParameters: []
+    labels: []
+  - name: Head
+    icon: {fileID: 2800000, guid: 3503f3c0ed9804b4fa7c9267884ac000, type: 3}
+    type: 103
+    parameter:
+      name: 
+    value: 1
+    style: 0
+    subMenu: {fileID: 11400000, guid: 89a61af58d42e4d4397c9e1b9442fb83, type: 2}
+    subParameters: []
+    labels: []

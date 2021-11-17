@@ -3,51 +3,44 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using MelonLoader;
 using UnhollowerBaseLib.Attributes;
-using VRChatUtilityKit.Utilities;
 
 namespace VRCBhapticsIntegration
 {
 	internal class CameraParser : MonoBehaviour
 	{
-		private bHaptics.PositionType Position = ModConfig.PositionArr[0];
-		private int Intensity = ModConfig.DefaultIntensity;
-		internal int[] OldLayers;
-		internal Camera _camera = null;
-		private Color[] OldColors;
+		private MelonPreferences_Entry<bool> Enabled_Entry;
+		private MelonPreferences_Entry<int> Intensity;
+		private Texture2D TempTexture;
+		private Rect TempTextureRect;
+
+		internal bHaptics.PositionType Position;
+		internal Camera _camera;
+		internal Color[] OldColors;
+
+		internal byte[] Value = new byte[20];
 
 		public CameraParser(IntPtr ptr) : base(ptr) { }
 
 		[HideFromIl2Cpp]
-		private bool Enabled
+		private bool IsEnabled
 		{
-			get => enabled;
-			set => _camera.enabled = enabled = value;
+			get => _camera.enabled;
+			set => _camera.enabled = value;
 		}
 
 		[HideFromIl2Cpp]
-		internal void SetupFromConfig(int index)
+		internal void SetupFromConfig()
 		{
-			Enabled = ModConfig.Allow_bHapticsPlayer_Communication.Value && ModConfig.Entries_Enable[index].Value;
-			Position = ModConfig.PositionArr[index];
-			Intensity = ModConfig.Entries_Intensity[index].Value;
-			OldColors = null;
-			VRCBhapticsIntegration.OnCameraParserSetup(this);
+			Enabled_Entry = ModConfig.Entries_Enable[Position];
+			Intensity = ModConfig.Entries_Intensity[Position];
+			LateUpdate();
 		}
 
 		[HideFromIl2Cpp]
-		private bool ShouldRun()
-		{
-			if (bHaptics.WasError
-				|| !Enabled
-				|| VRCBhapticsIntegration.IsInFBTCalibration())
-				return false;
-			return true;
-		}
-
-		[HideFromIl2Cpp]
-		private void RearrangeValueBuffer(ref byte[] Value)
+		private void RearrangeValueBuffer()
 		{
 			Array.Reverse(Value, 0, Value.Length);
+
 			switch (Position)
 			{
 				case bHaptics.PositionType.VestFront:
@@ -69,7 +62,7 @@ namespace VRCBhapticsIntegration
 		}
 
 		[HideFromIl2Cpp]
-		private void ParsePixels(Color[] pixelcolors, int width, int height)
+		internal void ParsePixels(Color[] pixelcolors, int width, int height)
 		{
 			if ((pixelcolors == null)
 				|| (pixelcolors.Length <= 0))
@@ -79,8 +72,6 @@ namespace VRCBhapticsIntegration
 				OldColors = pixelcolors;
 			else
 			{
-				byte[] Value = new byte[20];
-
 				for (int col = 0; col < height; col++)
 					for (int row = 0; row < width; row++)
 					{
@@ -94,87 +85,70 @@ namespace VRCBhapticsIntegration
 
 						Color pixel = pixelcolors[colorpos];
 						Color oldpixel = OldColors[colorpos];
-						Value[colorpos] = (byte)((pixel != oldpixel) ? Intensity : 0);
+						Value[colorpos] = (byte)((pixel != oldpixel) ? Intensity.Value : 0);
 					}
 
-				RearrangeValueBuffer(ref Value);
+				RearrangeValueBuffer();
 				bHaptics.Submit($"vrchat_{Position}", Position, Value, 100);
 			}
 		}
 
-		private void OnPreCull()
-		{
-			if (!ShouldRun())
-				return;
+		private void OnDisable()
+			=> enabled = true;
 
-			if ((VRCBhapticsIntegration.ObjectsToCull == null) || (VRCBhapticsIntegration.ObjectsToCull.Length <= 0))
-				return;
+		private void LateUpdate()
+			=> IsEnabled =
+				!bHaptics.WasError
+				&& ModConfig.Allow_bHapticsPlayer_Communication.Value
+				&& Enabled_Entry.Value;
 
-			for (int i = 0; i < VRCBhapticsIntegration.ObjectsToCull.Length; i++)
-			{
-				GameObject object_to_cull = VRCBhapticsIntegration.ObjectsToCull[i];
-				if (object_to_cull == null)
-					continue;
-
-				OldLayers[i] = gameObject.layer;
-				object_to_cull.SetLayerRecursive(VRCBhapticsIntegration.LayerForCulling);
-			}
-		}
-
-		private void OnPostCull()
-		{
-			if (!ShouldRun())
-				return;
-
-			if ((VRCBhapticsIntegration.ObjectsToCull == null) || (VRCBhapticsIntegration.ObjectsToCull.Length <= 0))
-				return;
-
-			for (int i = 0; i < VRCBhapticsIntegration.ObjectsToCull.Length; i++)
-			{
-				GameObject object_to_cull = VRCBhapticsIntegration.ObjectsToCull[i];
-				if (object_to_cull == null)
-					continue;
-
-				object_to_cull.SetLayerRecursive(OldLayers[i]);
-			}
-		}
-
-		private Texture2D TempTexture;
-		private Rect TempTextureRect = Rect.zero;
 		private void OnRenderImage(RenderTexture src, RenderTexture dest)
 		{
-			if (!ShouldRun())
+			if (!IsEnabled)
 				return;
-			
-			Graphics.Blit(src, dest);
 
-			if (SystemInfo.supportsAsyncGPUReadback)
+			Graphics.Blit(src, null as RenderTexture);
+
+			int width = src.width;
+			int height = src.height;
+
+			// Credit to ImTiara and knah for this tip on using AsyncGPUReadback.Request
+			if (ModConfig.Use_AsyncGPUReadback.Value && SystemInfo.supportsAsyncGPUReadback)
 			{
-				// Credit to ImTiara for this tip on using AsyncGPUReadback.Request
-				AsyncGPUReadback.Request(src, callback: new Action<AsyncGPUReadbackRequest>((AsyncGPUReadbackRequest req) =>
+				AsyncGPUReadback.Request(src, 0, src.graphicsFormat, new Action<AsyncGPUReadbackRequest>(req =>
 				{
 					IntPtr rawdata = req.GetDataRaw(0);
 					if (rawdata == IntPtr.Zero)
 						return;
 
-					ParsePixels(VRCBhapticsIntegration.RawDataToColorArray(rawdata, req.GetLayerDataSize()), req.width, req.height);
+					ParsePixels(RawDataToColorArray(rawdata, req.GetLayerDataSize()), width, height);
 				}));
 			}
 			else
 			{
-				int width = dest.width;
-				int height = dest.height;
-
 				if (TempTexture == null)
 					TempTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
 				if (TempTextureRect == Rect.zero)
 					TempTextureRect = new Rect(0, 0, width, height);
 
+				RenderTexture oldRenderTexture = RenderTexture.active;
+				RenderTexture.active = src;
 				TempTexture.ReadPixels(TempTextureRect, 0, 0);
 				TempTexture.Apply();
+				RenderTexture.active = oldRenderTexture;
 
 				ParsePixels(TempTexture.GetPixels(0, 0, width, height), width, height);
 			}
+		}
+
+		// Credit to knah for helping with this Raw Data to Color Conversion
+		private static unsafe Color[] RawDataToColorArray(IntPtr rawdata_ptr, int rawdata_length)
+		{
+			byte* rawdata = (byte*)rawdata_ptr;
+			Color[] colors = new Color[rawdata_length / 4];
+			for (int i = 0; i < rawdata_length; i += 4)
+				colors[i / 4] = new Color(rawdata[i] / 255f, rawdata[i + 1] / 255f, rawdata[i + 2] / 255f, rawdata[i + 3] / 255f);
+			return colors;
 		}
 	}
 }

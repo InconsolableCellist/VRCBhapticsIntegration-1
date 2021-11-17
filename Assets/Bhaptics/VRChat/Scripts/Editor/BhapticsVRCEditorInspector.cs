@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Linq;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -200,8 +202,14 @@ public class BhapticsVRCEditorInspector : Editor
 			if (previousGameObject != script.selectedDevice)
 			{
 				previousGameObject = script.selectedDevice;
-				MeshRenderer[] render = script.selectedDevice.GetComponentsInChildren<MeshRenderer>();
-				IsVisualized = render[0].enabled;
+		
+				Camera[] cams = script.selectedDevice.GetComponentsInChildren<Camera>(true);
+				foreach (Camera cam in cams)
+					if (cam.gameObject.name.ToLowerInvariant().Contains("dummy"))
+					{
+						IsVisualized = cam.gameObject.active;
+						break;
+					}
 			}
 			
             GUILayout.BeginHorizontal();
@@ -211,15 +219,29 @@ public class BhapticsVRCEditorInspector : Editor
             if (GUILayout.Button(IsVisualized ? "Visualized" : "Hidden", visualButtonStyle, GUILayout.Width(100), GUILayout.Height(18)))
             {
 				IsVisualized = !IsVisualized;
-				MeshRenderer[] render = script.selectedDevice.GetComponentsInChildren<MeshRenderer>();
+				
+				MeshRenderer[] render = script.selectedDevice.GetComponentsInChildren<MeshRenderer>(true);
 				foreach (MeshRenderer renderer in render)
-					renderer.enabled = IsVisualized;
-				SkinnedMeshRenderer[] render2 = script.selectedDevice.GetComponentsInChildren<SkinnedMeshRenderer>();
+					if (renderer.gameObject == script.selectedDevice.gameObject)
+						renderer.enabled = IsVisualized;
+					else
+						renderer.gameObject.SetActive(IsVisualized);
+					
+				SkinnedMeshRenderer[] render2 = script.selectedDevice.GetComponentsInChildren<SkinnedMeshRenderer>(true);
 				foreach (SkinnedMeshRenderer renderer in render2)
-					renderer.enabled = IsVisualized;
+					if (renderer.gameObject == script.selectedDevice.gameObject)
+						renderer.enabled = IsVisualized;
+					else
+						renderer.gameObject.SetActive(IsVisualized);
+					
+				Camera[] cams = script.selectedDevice.GetComponentsInChildren<Camera>(true);
+				foreach (Camera cam in cams)
+					if (cam.gameObject.name.ToLowerInvariant().Contains("dummy"))
+						cam.gameObject.SetActive(IsVisualized);
+					
                 string visual = "<color=green>Visualized</color>";
                 string hide = "<color=red>Hidden</color>";
-                Debug.Log("BhapticsVRCEditor / Change Visible Mode " + (IsVisualized ? visual : hide) + " -> " + (IsVisualized ? hide : visual));
+				Debug.Log($"BhapticsVRCEditor / Change Visible Mode {(!IsVisualized ? visual : hide)} -> {(IsVisualized ? visual : hide)}");
                 return;
             }
             GUILayout.EndHorizontal();
