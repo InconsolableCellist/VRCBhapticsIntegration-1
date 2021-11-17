@@ -10,6 +10,8 @@ Special Thanks to [bHaptics](https://www.bhaptics.com) for making the bHaptics G
 
 - AVATAR CREATION GUIDE: https://youtu.be/duaOPZsA5A0
 
+- Discord: https://discord.gg/JDw423Wskf
+
 - Mod Settings are found in ``UserData/VRCBhapticsIntegration.cfg``
 
 ---
