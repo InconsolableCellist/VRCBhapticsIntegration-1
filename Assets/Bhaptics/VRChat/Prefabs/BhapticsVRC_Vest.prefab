@@ -249,7 +249,7 @@ Camera:
   field of view: 60
   orthographic: 1
   orthographic size: 0.19
-  m_Depth: 0
+  m_Depth: 100
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294601695
@@ -323,7 +323,7 @@ Camera:
   field of view: 60
   orthographic: 1
   orthographic size: 0.19
-  m_Depth: 0
+  m_Depth: 100
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 3829527
@@ -756,7 +756,7 @@ Camera:
   field of view: 60
   orthographic: 1
   orthographic size: 0.19
-  m_Depth: 0
+  m_Depth: 100
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 4294601695
@@ -830,7 +830,7 @@ Camera:
   field of view: 60
   orthographic: 1
   orthographic size: 0.19
-  m_Depth: 0
+  m_Depth: 100
   m_CullingMask:
     serializedVersion: 2
     m_Bits: 3829527

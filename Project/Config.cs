@@ -15,20 +15,20 @@ namespace VRCBhapticsIntegration
 
 		internal static void Initialize()
 		{
-			Category = MelonPreferences.CreateCategory(BuildInfo.Name, BuildInfo.Name);
-			string filepath = Path.Combine(MelonUtils.UserDataDirectory, $"{BuildInfo.Name}.cfg");
+			Category = MelonPreferences.CreateCategory(Properties.BuildInfo.Name, Properties.BuildInfo.Name);
+			string filepath = Path.Combine(MelonUtils.UserDataDirectory, $"{Properties.BuildInfo.Name}.cfg");
 			Category.SetFilePath(filepath);
 
 			Allow_bHapticsPlayer_Communication = Category.CreateEntry("Allow_bHapticsPlayer_Communication", true, "Allow bHapticsPlayer Communication");
 			Allow_bHapticsPlayer_Communication.OnValueChanged += (oldval, newval) =>
 			{
-				MelonLogger.Msg($"bHaptics Player Communication is now {(newval ? "Enabled" : "Disabled")}");
+				VRCBhapticsIntegration.Logger.Msg($"bHaptics Player Communication is now {(newval ? "Enabled" : "Disabled")}");
 				foreach (KeyValuePair<bHaptics.PositionType, string> keyValuePair in PosToName)
 					VRCBhapticsIntegration.ResetCameraParser(keyValuePair.Key);
 			};
 
 			Use_AsyncGPUReadback = Category.CreateEntry("Use_AsyncGPUReadback", true, "Use AsyncGPUReadback if Supported");
-			Use_AsyncGPUReadback.OnValueChanged += (oldval, newval) => { MelonLogger.Msg($"AsyncGPUReadback Usage is now {(newval ? "Enabled" : "Disabled")}"); };
+			Use_AsyncGPUReadback.OnValueChanged += (oldval, newval) => { VRCBhapticsIntegration.Logger.Msg($"AsyncGPUReadback Usage is now {(newval ? "Enabled" : "Disabled")}"); };
 
 			Entries_Enable = new Dictionary<bHaptics.PositionType, MelonPreferences_Entry<bool>>();
 			Entries_Intensity = new Dictionary<bHaptics.PositionType, MelonPreferences_Entry<int>>();
@@ -40,12 +40,12 @@ namespace VRCBhapticsIntegration
 				Entries_Enable[keyValuePair.Key] = Category.CreateEntry($"Enable_{nameUnderscore}", true, $"Enable {name}");
 				Entries_Enable[keyValuePair.Key].OnValueChanged += (oldval, newval) =>
 				{
-					MelonLogger.Msg($"{name} is now {(newval ? "Enabled" : "Disabled")}");
+					VRCBhapticsIntegration.Logger.Msg($"{name} is now {(newval ? "Enabled" : "Disabled")}");
 					VRCBhapticsIntegration.ResetCameraParser(keyValuePair.Key);
 				};
 
 				Entries_Intensity[keyValuePair.Key] = Category.CreateEntry($"{nameUnderscore}_Intensity", DefaultIntensity, $"{name} Intensity");
-				Entries_Intensity[keyValuePair.Key].OnValueChanged += (oldval, newval) => { MelonLogger.Msg($"{name} Intensity is now set to {newval}"); };
+				Entries_Intensity[keyValuePair.Key].OnValueChanged += (oldval, newval) => { VRCBhapticsIntegration.Logger.Msg($"{name} Intensity is now set to {newval}"); };
 			}
 
 			if (!File.Exists(filepath))

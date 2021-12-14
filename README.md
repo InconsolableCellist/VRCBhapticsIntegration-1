@@ -16,26 +16,15 @@ Special Thanks to [bHaptics](https://www.bhaptics.com) for making the bHaptics G
 
 ---
 
-### KNOWN ISSUES:
-
-- On some hardware changing into a bHaptics Compatible Avatar will induce a crash with or without the Mod.  
-To help with this use your own custom Avatar and make sure you don't turn on too many devices in the Mod Settings.
-
-- Tracking Object Occlusion may not work properly on the Oculus Platform.  
-This means that the holographic display of your controllers may cause haptics to trigger.  
-If this is too much of an issue for you switch over to using the Steam Platform where Tracking Object Occlusion is working properly.
-
----
-
 ### REQUIREMENTS:
 
-- [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.4.3 or higher.
+- [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.5.2 or higher.
 
 ---
 
 ### INSTALLATION:
 
-1) Install [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.4.3 or higher.
+1) Install [MelonLoader](https://github.com/LavaGang/MelonLoader/releases) v0.5.2 or higher.
 2) Download [VRCBhapticsIntegration](https://github.com/HerpDerpinstine/VRCBhapticsIntegration/releases) from Releases.
 3) Place ``VRCBhapticsIntegration.dll`` in your ``Mods`` folder.
 4) Start the Game and change into a bHaptics Compatible Avatar.

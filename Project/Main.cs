@@ -8,15 +8,6 @@ using System.Reflection;
 
 namespace VRCBhapticsIntegration
 {
-    internal static class BuildInfo
-    {
-        public const string Name = "VRCBhapticsIntegration";
-        public const string Author = "Herp Derpinstine, benaclejames, BenjaminZehowlt, knah, ImTiara, and loukylor";
-        public const string Company = "Lava Gang";
-        public const string Version = "1.0.9";
-        public const string DownloadLink = "https://github.com/HerpDerpinstine/VRCBhapticsIntegration";
-    }
-
     internal class VRCBhapticsIntegration : MelonMod
 	{
 		private static Dictionary<bHaptics.PositionType, CameraParser> CameraParsers;
@@ -24,11 +15,14 @@ namespace VRCBhapticsIntegration
 		private static bool HasSteamTracking = false;
 		private static bool HasOculusRiftTracking = false;
 		private static bool HasOculusTouchTracking = false;
+		internal static MelonLogger.Instance Logger;
 
 		public override void OnApplicationStart()
         {
 			if (bHaptics.WasError)
 				return;
+
+			Logger = LoggerInstance;
 
 			LayerForCulling = LayerMask.NameToLayer("PlayerLocal");
 			CameraParsers = new Dictionary<bHaptics.PositionType, CameraParser>();
@@ -80,13 +74,19 @@ namespace VRCBhapticsIntegration
 
 			if (HasOculusRiftTracking)
             {
-
-            }
+				GameObject[] oculus_rift = OculusRiftTracking.GetTrackedObjects();
+				if ((oculus_rift != null)
+					&& (oculus_rift.Length > 0))
+					objects.AddRange(oculus_rift);
+			}
 
 			if (HasOculusTouchTracking)
             {
-
-            }
+				GameObject[] oculus_touch = OculusTouchTracking.GetTrackedObjects();
+				if ((oculus_touch != null)
+					&& (oculus_touch.Length > 0))
+					objects.AddRange(oculus_touch);
+			}
 
 			return objects.ToArray();
 		}
@@ -148,6 +148,9 @@ namespace VRCBhapticsIntegration
 				if (cam == null)
 					continue;
 
+				if (cam.gameObject.name.Contains("Dummy"))
+					continue;
+
 				RenderTexture tex = cam.targetTexture;
 				if (tex == null)
 					continue;
@@ -167,7 +170,7 @@ namespace VRCBhapticsIntegration
 				parser.SetupFromConfig();
 				CameraParsers[pos] = parser;
 
-				MelonLogger.Msg(ModConfig.PosToName[pos] + " Linked!");
+				VRCBhapticsIntegration.Logger.Msg(ModConfig.PosToName[pos] + " Linked!");
 			}
 		}
 	}
