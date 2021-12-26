@@ -98,6 +98,8 @@ namespace VRCBhapticsIntegration
 				&& (TrackedObjects.Length > 0))
 				foreach (GameObject obj in TrackedObjects)
 				{
+					if (obj == null)
+						continue;
 					SetLayerRecursive(obj, LayerForCulling);
 					MelonDebug.Msg($"Added {obj.name} to Culling Layer");
 				}
@@ -106,9 +108,15 @@ namespace VRCBhapticsIntegration
 		// Credit to loukylor for this Recursive Layer Set method
 		private static void SetLayerRecursive(GameObject gameObject, int layer)
 		{
+			if (gameObject == null)
+				return;
 			gameObject.layer = layer;
 			foreach (var child in gameObject.transform)
+			{
+				if (child == null)
+					return;
 				SetLayerRecursive(child.Cast<Transform>().gameObject, layer);
+			}
 		}
 
 		// Credit to loukylor for this Avatar Instantiated Patch
