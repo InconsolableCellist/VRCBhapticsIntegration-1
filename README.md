@@ -1,3 +1,11 @@
+# DISCLAIMER
+This Mod is **NO LONGER BEING MAINTAINED**!  
+It is provided from this repository **as-is** without additional support for **Archival purposes only**.  
+VRChat's ToS does not condone or allow use of this mod.  
+Highly recommend that you switch over to [bHapticsOSC](https://github.com/HerpDerpinstine/bHapticsOSC).
+
+---
+
 # VRCBhapticsIntegration
 Mod for VRChat using MelonLoader  
 Special Thanks to [bHaptics](https://www.bhaptics.com) for making the bHaptics Gear as well as supporting me and this mod wherever needed! :D
@@ -6,11 +14,7 @@ Special Thanks to [bHaptics](https://www.bhaptics.com) for making the bHaptics G
 - Includes a Unity Package for you to use in the Unity Editor to create your own custom bHaptics Compatible Avatars.
 - Supports all bHaptics Devices.
 
-- bHaptics Avatar World: https://vrchat.com/home/world/wrld_84e1a940-c139-44dc-8ddf-e2a3c5b2a4d9
-
 - AVATAR CREATION GUIDE: https://youtu.be/duaOPZsA5A0
-
-- Discord: https://discord.gg/JDw423Wskf
 
 - Mod Settings are found in ``UserData/VRCBhapticsIntegration.cfg``
 
